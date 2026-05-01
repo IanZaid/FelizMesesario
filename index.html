@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portal de Aniversario - Ian & Tu</title>
-    <!-- Librerías Externas -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
     
@@ -20,7 +19,7 @@
         .screen { min-height: 100vh; padding: 20px; box-sizing: border-box; position: relative; }
         .hidden { display: none !important; }
 
-        /* Dashboard y Timer */
+        /* Dashboard: Cajitas del Tiempo */
         .timer-container { margin: 20px 0; }
         .timer-label { font-size: 0.9rem; color: #666; margin-bottom: 15px; font-style: italic; }
         .timer-grid { display: flex; justify-content: center; gap: 10px; }
@@ -28,11 +27,12 @@
             background: rgba(255, 255, 255, 0.6); 
             border: 2px solid var(--pink-border); 
             border-radius: 12px; padding: 10px; min-width: 65px; 
+            box-shadow: 0 4px 10px rgba(255, 175, 189, 0.2);
         }
         .time-unit span { display: block; font-size: 1.4rem; font-weight: 800; color: var(--accent); }
         .time-unit small { font-size: 0.7rem; color: #888; font-weight: bold; }
 
-        /* Botones Píldora */
+        /* Botones Modernos (Píldora) */
         .menu-grid { display: flex; flex-direction: column; align-items: center; gap: 15px; margin-top: 30px; }
         .menu-btn-pill, .action-btn-pill { 
             background: var(--white); border: 2px solid var(--pink-border); 
@@ -47,7 +47,7 @@
             background: linear-gradient(135deg, #ffafbd 0%, #ffc3a0 100%); 
             display: flex; flex-direction: column; align-items: center; 
         }
-        .letter-wrapper { display: flex; justify-content: center; width: 100%; margin-top: 20px; }
+        .letter-wrapper { display: flex; justify-content: center; width: 100%; animation: fadeIn 1.5s ease; margin-top: 20px; }
         .letter-paper {
             background: #fffdf9; padding: 40px; border-radius: 15px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.15); max-width: 500px; width: 90%;
@@ -80,13 +80,14 @@
         .reaction { font-size: 0.9rem; font-weight: bold; color: var(--accent); min-height: 1.2rem; }
         textarea { width: 100%; height: 80px; border-radius: 15px; border: 2px solid var(--pink-border); padding: 10px; margin: 10px 0; outline: none; resize: none; font-family: inherit; box-sizing: border-box; }
 
-        /* Lock Screen */
-        #pass-input { border: 2px solid var(--pink-border); padding: 12px; border-radius: 15px; text-align: center; font-size: 1.2rem; width: 100px; color: var(--accent); outline: none; margin-bottom: 15px;}
+        /* Inputs y Errores */
+        #pass-input { border: 2px solid var(--pink-border); padding: 12px; border-radius: 15px; text-align: center; font-size: 1.2rem; width: 100px; color: var(--accent); outline: none; margin-bottom: 15px; }
         .error { color: #ff4d4d; font-size: 0.9rem; }
 
         /* Sparkles */
         .sparkle { position: absolute; background: white; border-radius: 50%; opacity: 0; animation: fall linear infinite; pointer-events: none; }
         @keyframes fall { 0% { transform: translateY(-10vh); opacity: 0; } 50% { opacity: 1; } 100% { transform: translateY(100vh); opacity: 0; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -110,6 +111,164 @@
             <button class="menu-btn-pill" onclick="showScreen('calificacion')">⭐ Califica nuestro Amor</button>
         </div>
     </section>
+</div>
+
+<div id="carta-lock" class="screen hidden">
+    <div class="header-nav"><button class="back-btn" onclick="showScreen('dashboard')">← Volver</button></div>
+    <div class="panel">
+        <h2 style="color:var(--accent)">Contraseña de Amor</h2>
+        <p>¿Cuántos meses cumplimos hoy?</p>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+            <input type="number" id="pass-input" placeholder="00">
+            <button class="action-btn-pill" onclick="checkPass()">Abrir Carta ✨</button>
+        </div>
+        <p id="pass-error" class="error hidden">Ese no es el número correcto... piensa bien ❤️</p>
+    </div>
+</div>
+
+<div id="carta-content" class="screen hidden magic-canvas">
+    <div class="header-nav"><button class="back-btn light" onclick="showScreen('dashboard')">← Volver</button></div>
+    <div id="sparkles-container"></div>
+    <div class="letter-wrapper">
+        <div class="letter-paper">
+            <h1 class="letter-title">Para la niña de mis sueños...</h1>
+            <div id="typewriter-text"></div>
+            <div class="letter-footer">Con todo mi amor, Ian.</div>
+        </div>
+    </div>
+</div>
+
+<div id="memorama" class="screen hidden">
+    <div class="header-nav">
+        <button class="back-btn" onclick="showScreen('dashboard')">← Volver</button>
+        <div class="game-stats">⏱️ <span id="mem-time">0</span>s | 🔄 <span id="mem-moves">0</span></div>
+    </div>
+    <div class="memory-game" id="memory-game"></div>
+</div>
+
+<div id="calificacion" class="screen hidden">
+    <div class="header-nav"><button class="back-btn" onclick="showScreen('dashboard')">← Volver</button></div>
+    <div class="panel">
+        <h2 style="color:var(--accent)">Reporte de Calidad ✨</h2>
+        <div id="rating-container"></div>
+        <textarea id="love-note" placeholder="Escríbeme algo lindo aquí..."></textarea>
+        <button class="action-btn-pill" onclick="sendToWhatsApp()">Enviar Reporte ❤️</button>
+    </div>
+</div>
+
+<script>
+    const images = [
+        'https://i.ibb.co/M3K4cYg/f1.jpg', 'https://i.ibb.co/609tbCqv/f2.jpg',
+        'https://i.ibb.co/35m5y45q/f3.jpg', 'https://i.ibb.co/0yfknvvz/f4.jpg',
+        'https://i.ibb.co/bRzcZ3N8/f5.jpg', 'https://i.ibb.co/4wSQqnSG/f6.jpg'
+    ];
+
+    function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+        document.getElementById(id).classList.remove('hidden');
+        if(id === 'memorama') initMemory();
+        if(id === 'calificacion') initRating();
+    }
+
+    // 1. CONTADOR (1 Feb 2025, 2:00 PM)
+    const start = new Date(2025, 1, 1, 14, 0, 0);
+    setInterval(() => {
+        const diff = new Date() - start;
+        document.getElementById('days').innerText = Math.floor(diff / 86400000);
+        document.getElementById('hours').innerText = Math.floor((diff / 3600000) % 24).toString().padStart(2,'0');
+        document.getElementById('minutes').innerText = Math.floor((diff / 60000) % 60).toString().padStart(2,'0');
+        document.getElementById('seconds').innerText = Math.floor((diff / 1000) % 60).toString().padStart(2,'0');
+    }, 1000);
+
+    // 2. CARTA (Contraseña corregida a 15)
+    function checkPass() {
+        const val = document.getElementById('pass-input').value;
+        if(val == "15") {
+            confetti(); showScreen('carta-content'); createSparkles(); escribirCarta();
+        } else { document.getElementById('pass-error').classList.remove('hidden'); }
+    }
+
+    function escribirCarta() {
+        const text = "Amor, hoy que cumplimos meses, me puse a pensar en todo lo que hemos pasado y sentí que necesitaba decirte esto se que últimamente no han sido días fáciles y que hemos tenido bastantes problemas que a veces nos cansan, y se que estos días no he sido la versión de mí que tú esperas y te mereces a veces ni yo mismo entiendo qué me pasa o por qué me cierro, pero lo que sí sé es que quiero mejorar, quiero cambiar lo que está mal para estar bien contigo y también para estar bien conmigo mismo.\n\nTe doy las gracias una vez más por no soltarme y por todo este tiempo que llevamos juntos, de verdad eres lo mejor que me pudo haber pasado en esta vida y agradezco cada detalle, cada risa y hasta los momentos pequeños donde no hacemos nada, por que para mí lo son todo me di cuenta de que, sin importar lo que pase afuera o los problemas que tengamos, mi lugar seguro siempre eres tú.\n\nPerdón por las veces que te he hecho sentir mal o que te he hecho dudar, lo que más quiero ahora es abrazarte muy fuerte y platicar de todo hasta que se nos olvide el resto del mundo, solo quiero ser feliz a tu lado y que volvamos a esa paz que me haces sentir te adoro muchísimo, eres y vas a seguir siendo la niña de mis sueños. Gracias por un mes más a mi lado.";
+        let i = 0; const el = document.getElementById('typewriter-text'); el.innerText = "";
+        function type() { if (i < text.length) { el.innerText += text.charAt(i); i++; setTimeout(type, 40); } }
+        type();
+    }
+
+    function createSparkles() {
+        const container = document.getElementById('sparkles-container'); container.innerHTML = "";
+        for (let i = 0; i < 40; i++) {
+            const s = document.createElement('div'); s.className = 'sparkle';
+            s.style.left = Math.random() * 100 + "%"; s.style.width = s.style.height = (Math.random() * 5 + 2) + "px";
+            s.style.animationDuration = (Math.random() * 3 + 2) + "s"; s.style.animationDelay = Math.random() * 5 + "s";
+            container.appendChild(s);
+        }
+    }
+
+    // 3. CALIFICACIÓN
+    const questions = ["¿Qué tan cariñoso soy?", "¿Sé escucharte bien?", "¿Te gustan nuestros planes?", "¿Te hago reír?", "¿Tengo paciencia?", "¿Sientes mi apoyo?"];
+    function initRating() {
+        const container = document.getElementById('rating-container'); container.innerHTML = "";
+        questions.forEach(q => {
+            const div = document.createElement('div'); div.className = "rating-row";
+            div.innerHTML = `<span>${q}</span><div class="heart-box">
+                <span class="heart-btn" onclick="setRate(this, 1)">🤍</span>
+                <span class="heart-btn" onclick="setRate(this, 2)">🤍</span>
+                <span class="heart-btn" onclick="setRate(this, 3)">🤍</span>
+                <span class="heart-btn" onclick="setRate(this, 4)">🤍</span>
+                <span class="heart-btn" onclick="setRate(this, 5)">🤍</span>
+            </div><div class="reaction"></div>`;
+            container.appendChild(div);
+        });
+    }
+    function setRate(el, val) {
+        const row = el.closest('.rating-row');
+        const hearts = row.querySelectorAll('.heart-btn');
+        hearts.forEach((h, i) => { h.innerText = (i < val) ? "❤️" : "🤍"; });
+        row.dataset.score = val;
+        const phrases = ["¿En serio? 🥺", "Podemos mejorar 😂", "Mas o menos 😘", "¡Te amo! ✨", "¡Te Adorooo!❤️"];
+        row.querySelector('.reaction').innerText = phrases[val - 1];
+    }
+
+    function sendToWhatsApp() {
+        let msg = "*REPORTE DE AMOR* ❤️%0A";
+        document.querySelectorAll('.rating-row').forEach(r => { msg += `*${r.querySelector('span').innerText}:* ${r.dataset.score || 0}/5 ❤️%0A`; });
+        const note = document.getElementById('love-note').value;
+        if(note) msg += `%0A*Nota:* ${note}`;
+        window.open(`https://api.whatsapp.com/send?phone=522281091300&text=${msg}`);
+    }
+
+    // 4. MEMORAMA
+    let mMoves = 0, mTime = 0, mInt;
+    function initMemory() {
+        mMoves = 0; mTime = 0; document.getElementById('mem-moves').innerText = 0; document.getElementById('mem-time').innerText = 0;
+        clearInterval(mInt); mInt = setInterval(() => { mTime++; document.getElementById('mem-time').innerText = mTime; }, 1000);
+        const board = document.getElementById('memory-game'); board.innerHTML = "";
+        let cards = [...images, ...images].sort(() => Math.random() - 0.5);
+        let flipped = [];
+        cards.forEach(url => {
+            const c = document.createElement('div'); c.className = 'card';
+            c.innerHTML = `<div class="card-front"><img src="${url}"></div><div class="card-back">❤️</div>`;
+            c.onclick = () => {
+                if(flipped.length < 2 && !c.classList.contains('flipped')) {
+                    c.classList.add('flipped'); flipped.push(c);
+                    if(flipped.length === 2) {
+                        mMoves++; document.getElementById('mem-moves').innerText = mMoves;
+                        if(flipped[0].innerHTML === flipped[1].innerHTML) { 
+                            flipped = []; 
+                            if(document.querySelectorAll('.flipped').length === 12) { clearInterval(mInt); confetti(); } 
+                        } else { 
+                            setTimeout(() => { flipped.forEach(x => x.classList.remove('flipped')); flipped = []; }, 800); 
+                        }
+                    }
+                }
+            };
+            board.appendChild(c);
+        });
+    }
+</script>
+</body>
+</html>
 </div>
 
 <div id="carta-lock" class="screen hidden">
